@@ -1,0 +1,111 @@
+<RelativeLayout
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+
+
+
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/LL1"
+        android:layout_margin="5dp"
+        >
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:id="@+id/location_text"
+            android:inputType="textEmailAddress"
+            android:hint="Enter Location e.g Delhi"
+            android:layout_height="match_parent"
+
+            android:imeOptions="actionDone"
+            />
+            />
+
+
+
+
+    </LinearLayout>
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="in.naveen.coordinatesfinder.MapsActivity"
+    android:layout_margin="5dp"
+    android:layout_below="@+id/LL1"
+    android:layout_above="@+id/LL2"
+
+    />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/LL2"
+        android:layout_margin="5dp"
+        android:layout_above="@+id/LL3"
+        >
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_weight="4"
+            android:id="@+id/lat_text"
+            android:layout_height="match_parent"
+            android:hint="Latitude"
+            android:inputType="text"
+            android:imeOptions="actionDone"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:id="@+id/lat_button"
+            android:text="Copy"
+            />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/LL3"
+    android:layout_margin="5dp"
+        android:layout_alignParentBottom="true"
+    >
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_weight="4"
+        android:id="@+id/long_text"
+        android:hint="Longitude"
+        android:layout_height="match_parent"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        />
+
+    <Button
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:id="@+id/long_button"
+        android:text="Copy"
+
+
+
+        />
+
+
+</LinearLayout>
+
+
+</RelativeLayout>
