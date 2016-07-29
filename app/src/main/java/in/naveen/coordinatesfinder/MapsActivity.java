@@ -1,53 +1,66 @@
 package in.naveen.coordinatesfinder;
-
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.Geocoder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.identity.intents.Address;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
 EditText location_text, setLONG,setLAT;
     Button copy_lat,copy_lng;
-    double lat,lng;
-    String catchedStringfromgoogle;
     private GoogleMap mMap;
+    String resultvalue,myurl;
+    ProgressDialog pdialog;
+
+
+    public boolean isOnline()
+    {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,20 +74,53 @@ EditText location_text, setLONG,setLAT;
         copy_lng = (Button) findViewById(R.id.long_button);
 
 
+
         location_text = (EditText) findViewById(R.id.location_text);
         setLAT= (EditText) findViewById(R.id.lat_text);
         setLONG = (EditText) findViewById(R.id.long_text);
+
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Internet Connection Problem.");
+        builder.setTitle("Error");
+        builder.setPositiveButton("Setting", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS), 0);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setIcon(null);
+
+
+        pdialog = new ProgressDialog(MapsActivity.this);
+        pdialog.setTitle("Processing");
+        pdialog.setCancelable(false);
+
+
 
         //on click respond for EditText
 
         location_text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
                 //Respond to Done click event
+
                 if(actionId== EditorInfo.IME_ACTION_DONE)
                 {
 
+
                     String passed_value= location_text.getText().toString();
+                    passed_value = passed_value.replaceAll(" ", "%20");
+                    myurl="http://maps.google.com/maps/api/geocode/json?address="+passed_value+"&sensor=false";
+
 
 
 
@@ -84,90 +130,38 @@ EditText location_text, setLONG,setLAT;
                         Toast.makeText(getApplicationContext(),"Pass some value",Toast.LENGTH_SHORT).show();
 
                     }
-
-                    else
+                   else if(isOnline()==false)
 
                     {
 
-                        Geocoder gc=new Geocoder(getApplication());
+                        builder.show();
 
-                        try {
-                            List<android.location.Address> list=gc.getFromLocationName(passed_value,1);
+                     }
+                    else
+                    {
 
 
+                        new JSONtask().execute(myurl);
+                        pdialog.show();
 
-                             android.location.Address address=list.get(0);
-                            lat= address.getLatitude();
-                            lng=address.getLongitude();
-                            catchedStringfromgoogle= address.getLocality();
-                            setLAT.setText(String.valueOf(lat));
-                            setLONG.setText(String.valueOf(lng));
-
-                            //clear previous markers
-                            mMap.clear();
-
-                            MarkerOptions mylocation = new MarkerOptions();
-                            mylocation.title(catchedStringfromgoogle);
-                            mylocation.position(new LatLng(lat, lng));
-                            mylocation.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                            mMap.addMarker(mylocation);
-                            mMap.moveCamera(CameraUpdateFactory.newLatLng(mylocation.getPosition()));
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat,lng),5));
-
-                        } catch (IndexOutOfBoundsException e) {
-                        // Handle if no value is present in "list" ,e.g when user passes "dcbvejvfewj" and no result is returned
-                            Toast.makeText(getApplicationContext(),"Sorry but location seems to be incorrect",Toast.LENGTH_SHORT).show();
-                         e.printStackTrace();
-
-                        } catch (IOException e) {
-                            Toast.makeText(getApplicationContext(),"No Accurate Place Catched",Toast.LENGTH_SHORT).show();
-
-                            e.printStackTrace();
                         }
-
-
-                        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                            @Override
-                            public boolean onMarkerClick(Marker marker) {
-                                //Handle the onclick of markers
-                                if(catchedStringfromgoogle==null)
-                                {
-                                    Toast.makeText(getApplicationContext(),"No Accurate Place Catched",Toast.LENGTH_SHORT).show();
-                                }
-                                else
-                                {
-                                    Toast.makeText(getApplicationContext(),""+catchedStringfromgoogle,Toast.LENGTH_SHORT).show();
-
-                                }
-                                return false;
-                            }
-                        });
-
-
-                    }
-
-
-                    }
-
-
-
-
-
+                }
 
                   return false;
             }
         });
+
+
 //Copy the text from "setLAT"
 
         copy_lat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData cd = ClipData.newPlainText("COPY",setLAT.getText().toString());
                 cm.setPrimaryClip(cd);
-
-
-
 
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 
@@ -180,10 +174,14 @@ EditText location_text, setLONG,setLAT;
 
 
                 Toast.makeText(getApplicationContext(),pasteData+" Copied",Toast.LENGTH_SHORT).show();
+
+
+
             }
         });
 
-//Copy the text from "setLONG"
+//Copy the text from "setLONG
+
         copy_lng.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -206,8 +204,7 @@ EditText location_text, setLONG,setLAT;
                 Toast.makeText(getApplicationContext(),pasteData+" Copied",Toast.LENGTH_SHORT).show();
             }
         });
-
-    }
+            }
 
 
     /**
@@ -258,13 +255,10 @@ EditText location_text, setLONG,setLAT;
 
         }
 
-
-
         if (item.getItemId()==R.id.exit)
         {
 
             this.finish();
-
 
         }
 
@@ -272,4 +266,103 @@ EditText location_text, setLONG,setLAT;
     }
 
 
+
+    public class JSONtask extends AsyncTask< String ,String, String >
+
+    {
+
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+
+                return buffer.toString();
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "MalformedURLException e", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "IOException e", Toast.LENGTH_SHORT).show();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "IOException e", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            resultvalue = result;
+            readJSON();
+
+
+        }
+        void readJSON()
+        {
+            try {
+                JSONObject jsonObject = new JSONObject(resultvalue);
+                JSONArray resultsArray = jsonObject.getJSONArray("results");
+                JSONObject resultsobjects = resultsArray.getJSONObject(0);
+                String name = resultsobjects.getString("geometry");
+                JSONObject jsonObjectNAME = new JSONObject(name);
+                String area_location = jsonObjectNAME.getString("location");
+                JSONObject jsonObjectLOCATION= new JSONObject(area_location);
+                String lat = jsonObjectLOCATION.getString("lat");
+                String lng = jsonObjectLOCATION.getString("lng");
+                setLAT.setText(String.valueOf(lat));
+                setLONG.setText(String.valueOf(lng));
+
+                mMap.clear();
+                MarkerOptions mylocation = new MarkerOptions();
+                mylocation.position(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                mylocation.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                mMap.addMarker(mylocation);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(mylocation.getPosition()));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)), 5));
+                pdialog.dismiss();
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "No Location Found,try Again", Toast.LENGTH_SHORT).show();
+                pdialog.dismiss();
+
+            }
+
+        }
+
+    }
 }
+
+
+
