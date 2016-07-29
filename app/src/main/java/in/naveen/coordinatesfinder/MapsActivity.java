@@ -46,10 +46,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 EditText location_text, setLONG,setLAT;
     Button copy_lat,copy_lng;
-    private GoogleMap mMap;
     String resultvalue,myurl;
     ProgressDialog pdialog;
-
+    private GoogleMap mMap;
 
     public boolean isOnline()
     {
@@ -244,7 +243,6 @@ EditText location_text, setLONG,setLAT;
             startActivity(i);
 
           }
-
 
         if (item.getItemId()==R.id.dev)
         {
