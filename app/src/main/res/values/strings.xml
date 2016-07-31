@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Coordinates Finder</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_scrolling">ScrollingActivity</string>
+
+    <string name="action_settings">Settings</string>
+
 </resources>

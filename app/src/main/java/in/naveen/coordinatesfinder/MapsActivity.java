@@ -8,8 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
@@ -22,6 +22,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -45,11 +48,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 EditText location_text, setLONG,setLAT;
-    Button copy_lat,copy_lng;
+    Button copy_lat,copy_lng,clear;
     String resultvalue,myurl;
     ProgressDialog pdialog;
+    int adcounter;
     private GoogleMap mMap;
+    private InterstitialAd interstitial;
 
+
+//Check network state method
     public boolean isOnline()
     {
         ConnectivityManager cm =
@@ -65,12 +72,23 @@ EditText location_text, setLONG,setLAT;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
+        }
+
+
+
+
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         copy_lat = (Button) findViewById(R.id.lat_button);
         copy_lng = (Button) findViewById(R.id.long_button);
+        clear = (Button) findViewById(R.id.clear);
 
 
 
@@ -78,10 +96,22 @@ EditText location_text, setLONG,setLAT;
         setLAT= (EditText) findViewById(R.id.lat_text);
         setLONG = (EditText) findViewById(R.id.long_text);
 
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Internet Connection Problem.");
-        builder.setTitle("Error");
+        builder.setMessage("Internet Connection Problem. Check your Internet connection");
+        builder.setTitle("Internet Error");
+        builder.setNeutralButton("Retry", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                if (isOnline() == false) {
+                    builder.show();
+                } else {
+                    dialog.dismiss();
+
+                }
+
+            }
+        });
         builder.setPositiveButton("Setting", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -102,9 +132,13 @@ EditText location_text, setLONG,setLAT;
         pdialog.setTitle("Processing");
         pdialog.setCancelable(false);
 
-
+        clear.setVisibility(View.GONE);
 
         //on click respond for EditText
+
+
+
+
 
         location_text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -115,10 +149,34 @@ EditText location_text, setLONG,setLAT;
                 if(actionId== EditorInfo.IME_ACTION_DONE)
                 {
 
-
                     String passed_value= location_text.getText().toString();
                     passed_value = passed_value.replaceAll(" ", "%20");
                     myurl="http://maps.google.com/maps/api/geocode/json?address="+passed_value+"&sensor=false";
+
+
+                    adcounter++;
+
+                    if (adcounter%2 == 0) {
+                        AdRequest adRequest = new AdRequest.Builder().build();
+
+                        // Prepare the Interstitial Ad
+                        interstitial = new InterstitialAd(MapsActivity.this);
+// Insert the Ad Unit ID
+                        //    interstitial.setAdUnitId(getString(R.string.admob_interstitial_id));
+                        interstitial.setAdUnitId("ca-app-pub-9650741487131779/9625497843");
+
+                        interstitial.loadAd(adRequest);
+// Prepare an Interstitial Ad Listener
+                        interstitial.setAdListener(new AdListener() {
+                            public void onAdLoaded() {
+// Call displayInterstitial() function
+                                displayInterstitial();
+                            }
+                        });
+
+
+                    }
+
 
 
 
@@ -126,7 +184,7 @@ EditText location_text, setLONG,setLAT;
                     if (passed_value.matches(""))
                     {
 
-                        Toast.makeText(getApplicationContext(),"Pass some value",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),"Opps... You forgot to provide us Location.",Toast.LENGTH_SHORT).show();
 
                     }
                    else if(isOnline()==false)
@@ -139,11 +197,11 @@ EditText location_text, setLONG,setLAT;
                     else
                     {
 
-
                         new JSONtask().execute(myurl);
                         pdialog.show();
+                        clear.setVisibility(View.VISIBLE);
 
-                        }
+                    }
                 }
 
                   return false;
@@ -151,8 +209,19 @@ EditText location_text, setLONG,setLAT;
         });
 
 
-//Copy the text from "setLAT"
 
+
+//Copy the text from "setLAT"
+clear.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        location_text.setText("");
+         setLONG.setText("");
+        setLAT.setText("");
+        clear.setVisibility(View.GONE);
+
+    }
+});
         copy_lat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -217,12 +286,16 @@ EditText location_text, setLONG,setLAT;
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+
         mMap = googleMap;
 
         //Default Location
         LatLng india = new LatLng(20.593684, 78.96288);
 
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(india));
+
 
 
     }
@@ -239,18 +312,25 @@ EditText location_text, setLONG,setLAT;
 
         if (item.getItemId()==R.id.glicence)
         {
-            Intent i = new Intent(MapsActivity.this,Disclaimer_Java.class);
+            Toast.makeText(getApplicationContext(), "Loading... Please wait", Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(MapsActivity.this,ScrollingActivity.class);
             startActivity(i);
 
           }
 
         if (item.getItemId()==R.id.dev)
         {
+           /* Create the Intent */
+            final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 
-            Intent broswerIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/snghnaveen/"));
-            startActivity(broswerIntent);
+/* Fill it with Data */
+            emailIntent.setType("plain/text");
+            emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"sngh.naveen@live.com"});
+            emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "CoodinateFinder");
+            emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Contact : ");
 
-
+/* Send it off to the Activity-Chooser */
+            MapsActivity.this.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
         }
 
         if (item.getItemId()==R.id.exit)
@@ -263,7 +343,12 @@ EditText location_text, setLONG,setLAT;
         return super.onOptionsItemSelected(item);
     }
 
-
+    public void displayInterstitial() {
+// If Ads are loaded, show Interstitial else show nothing.
+        if (interstitial.isLoaded()) {
+            interstitial.show();
+        }
+    }
 
     public class JSONtask extends AsyncTask< String ,String, String >
 
@@ -328,6 +413,7 @@ EditText location_text, setLONG,setLAT;
         void readJSON()
         {
             try {
+
                 JSONObject jsonObject = new JSONObject(resultvalue);
                 JSONArray resultsArray = jsonObject.getJSONArray("results");
                 JSONObject resultsobjects = resultsArray.getJSONObject(0);
@@ -337,6 +423,12 @@ EditText location_text, setLONG,setLAT;
                 JSONObject jsonObjectLOCATION= new JSONObject(area_location);
                 String lat = jsonObjectLOCATION.getString("lat");
                 String lng = jsonObjectLOCATION.getString("lng");
+
+
+                String Address = resultsobjects.getString("formatted_address");
+
+
+                location_text.setText("Location : "+Address+ " ");
                 setLAT.setText(String.valueOf(lat));
                 setLONG.setText(String.valueOf(lng));
 
@@ -346,6 +438,7 @@ EditText location_text, setLONG,setLAT;
                 mylocation.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 mMap.addMarker(mylocation);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(mylocation.getPosition()));
+
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)), 5));
                 pdialog.dismiss();
 

@@ -1,8 +1,9 @@
 <RelativeLayout
 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fontFamily="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android" >
+    android:layout_height="match_parent">
 
 
 
@@ -11,28 +12,46 @@
 
 
     <LinearLayout
+        android:id="@+id/LL1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/LL1"
         android:layout_margin="5dp"
+        android:animateLayoutChanges="true"
         >
 
         <EditText
-            android:layout_width="0dp"
-            android:layout_weight="1"
             android:id="@+id/location_text"
-            android:inputType="textEmailAddress"
-            android:hint="Enter Location e.g Delhi"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-
+            android:layout_weight="3"
+            android:hint="Enter Location e.g Delhi"
             android:imeOptions="actionDone"
+            android:inputType="textEmailAddress"
+
             />
+
+        <Button
+            android:id="@+id/clear"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Clear"
+            android:textAllCaps="false"
+
             />
 
 
+                </LinearLayout>
 
+    <FrameLayout
+        android:id="@+id/map_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/LL2"
+        android:layout_below="@+id/LL1"
+        android:layout_margin="8dp">
 
-    </LinearLayout>
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -40,65 +59,77 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="3dp"
     tools:context="in.naveen.coordinatesfinder.MapsActivity"
-    android:layout_margin="5dp"
-    android:layout_below="@+id/LL1"
-    android:layout_above="@+id/LL2"
 
     />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/map_bg" />
+
+    </FrameLayout>
 
     <LinearLayout
+        android:id="@+id/LL2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/LL2"
-        android:layout_margin="5dp"
         android:layout_above="@+id/LL3"
+        android:layout_margin="5dp"
         >
 
         <EditText
-            android:layout_width="0dp"
-            android:layout_weight="4"
             android:id="@+id/lat_text"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="4"
             android:hint="Latitude"
+            android:imeOptions="actionDone"
             android:inputType="text"
-            android:imeOptions="actionDone"/>
+            android:textStyle="bold|italic"
+
+            />
 
         <Button
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
             android:id="@+id/lat_button"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:text="Copy"
+            android:textAllCaps="false"
             />
 
 
     </LinearLayout>
 
     <LinearLayout
+    android:id="@+id/LL3"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/LL3"
-    android:layout_margin="5dp"
-        android:layout_alignParentBottom="true"
+    android:layout_alignParentBottom="true"
+        android:layout_margin="5dp"
     >
 
     <EditText
-        android:layout_width="0dp"
-        android:layout_weight="4"
         android:id="@+id/long_text"
-        android:hint="Longitude"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:hint="Longitude"
         android:imeOptions="actionDone"
         android:inputType="text"
+        android:textStyle="bold|italic"
         />
 
     <Button
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="match_parent"
         android:id="@+id/long_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:text="Copy"
+        android:textAllCaps="false"
 
 
 

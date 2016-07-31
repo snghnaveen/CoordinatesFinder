@@ -2,12 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/glicence"
-        android:title="Google Licence">
+        android:title="Licence \u0026 Disclaimer">
 
     </item>
 
     <item android:id="@+id/dev"
-        android:title="Contact Developer">
+        android:title="Contact Us">
 
     </item>
     <item android:id="@+id/exit"
